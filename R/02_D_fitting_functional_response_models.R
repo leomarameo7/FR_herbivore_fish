@@ -1,135 +1,137 @@
-### Load packages####
-library(readr)
+# LOAD PACKAGES
+library(brms) #bayesian modelling with STAN code
+library(readxl) #read excel data
 library(tidyverse)
-library(brms)
-library(loo)
-library(rstanarm)
-library(Rcpp)
-library(rstan)
-library(parallel)
-library(bayesplot)
-### Read cleaned data ####
-data=read.csv("data/processed/data_cleaned.csv",header=T)
+##### READ DATA AND SET CATEGORICAL VARIABLES #####
+data <- read_excel('data/processed/data_cleaned.xlsx')
+data$Sequence <- as.factor(data$Sequence) #order of the experiments during a day
 
-### Null model fitting - constant  #####
-#'Prior choice recommendations. retrived from:
-#'https://github.com/stan-dev/stan/wiki/Prior-Choice-Recommendations
-#'Weakly informative prior, very weak: normal(0, 10);
-#'Generic weakly informative prior: normal(0, 1);
-#'Specific informative prior: normal(0.4, 0.2) or whatever.
-fit0 <- brm(formula = bf(consumption_rate ~ a, # a = attack rate // in this null model we consider a as the maximum killing rate
-                       a ~ 1, nl = TRUE),
-          data = data, family = gaussian(),
-          prior = c(set_prior("normal(0, 1)", nlpar = "a", lb = 0)),
-                   # set_prior("exponential(1)", class = "sigma")), # residual standard deviation
-          chains = 3,  #'estimation of posterior probability distributions using 
-                       #'a stochastic process known as Markov chain Monte Carlo (MCMC) estimation
-                       #'“Using 3 or 4 chains is conventional, and quite often more than enough to reassure
-                       #' us that the sampling is working properly” 
-          iter = 10000,
-          warmup = 500,
-          sample_prior = TRUE,
-          cores = getOption("mc.cores",1),
-          control = list(adapt_delta = 0.99, max_treedepth = 15),
-          seed = 7777) # A single numeric value passed to set.seed to make results reproducible.
-         # file = "fit0" : Either NULL or a character string. In the latter case, the fitted model object is
-                          #saved via saveRDS in a file named after the string supplied in file. The .rds
-                          #extension is added automatically. If the file already exists, brm will load and
-                          #return the saved model object instead of refitting the model. As existing files
-                         #won’t be overwritten, you have to manually remove the file in order to refit
-                         # and save the model under an existing
+#####NULL MODEL (non dependent of algae and fish densities)####
+fit_00 <- brm(formula = bf(Cons_rate ~ (a+b)*fish_eating_minute, 
+                           a ~ 1, b ~ 1|Sequence, nl = TRUE),
+              data = data, family = gaussian(link = 'identity'),
+              prior = c(set_prior("normal(0, 0.5)", nlpar = "a", lb = 0),
+                        set_prior("normal(0, 0.5)", nlpar = "b"),
+                        set_prior("cauchy(0, 0.1)", class  = "sigma")),
+              chains = 3, 
+              iter = 1500, 
+              warmup = 500, 
+              sample_prior = TRUE,
+              save_pars = save_pars(all = T),
+              seed = 777,
+              control = list(adapt_delta = 0.99, max_treedepth = 15),
+              file = "outputs_results/models/fit_00")
 
-fit0 = add_criterion(fit0, c("loo","waic"),#Names of model fit criteria to compute. Currently supported are "loo", "waic",
-                                                  #"kfold", "loo_subsample", "bayes_R2" (Bayesian R-squared), "loo_R2" (LOOadjusted R-squared), 
-                                                  # and "marglik" (log marginal likelihood).
-                    model_name = "fit0",
-                    overwrite = T, file = "fit0")
-summary(fit0)
-#'Using plot() for a brm() fit returns both density and trace lots for the parameters.
-plot(fit0)
+#HOLLING TYPE I (linear function, only algae dependent)
+fit_H1 <- brm(formula = bf(Cons_rate ~ (Algae_prev_d*a+b)*fish_eating_minute, 
+                           a ~ 1, b ~ 1|Sequence, nl = TRUE),
+              data = data, family = gaussian(link = 'identity'),
+              prior = c(set_prior("normal(0, 0.5)", nlpar = "a", lb = 0),
+                        set_prior("normal(0, 0.5)", nlpar = "b"),
+                        set_prior("cauchy(0, 0.1)", class  = "sigma")),
+              chains = 3, iter = 1500, warmup = 500, sample_prior = TRUE,
+              save_pars = save_pars(all = T),
+              seed = 777,
+              control = list(adapt_delta = 0.99, max_treedepth = 15),
+              file = "outputs_results/models/fit_H1")
 
-##### FitP1_Predator dependent_linear #####
+#HOLLING TYPE II (hyperbolic function, only algae dependent)
+fit_H2 <- brm(formula = bf(Cons_rate ~ (Algae_prev_d*a/(1+a*h*Algae_prev_d)+b)*fish_eating_minute, 
+                           a ~ 1, b ~ 1|Sequence, h ~ 1, nl = TRUE),
+              data = data, family = gaussian(link = 'identity'),
+              prior = c(set_prior("normal(0, 0.5)", nlpar = "a", lb = 0),
+                        set_prior("normal(0, 2)", nlpar = "h", lb = 0),
+                        set_prior("normal(0, 0.5)", nlpar = "b"),
+                        set_prior("cauchy(0, 0.1)", class  = "sigma")),
+              chains = 3, iter = 1500, warmup = 500, sample_prior = TRUE,
+              save_pars = save_pars(all = T),
+              seed = 777,
+              control = list(adapt_delta = 0.99, max_treedepth = 15),
+              file = "outputs_results/models/fit_H2")
 
-fitP1 <- brm(formula = bf(consumption_rate ~ a*Algae_density*Fish_density^m, 
-                        a ~ 1, m ~ 1, nl = TRUE),
-           data = data, family = gaussian(),
-           prior = c(set_prior("normal(0, 1)", nlpar = "a", lb = 0), # a= Proportion of algae that an individual consume per unit of time
-                     set_prior("uniform(-3, 3)", nlpar = "m", lb = -3, ub= 3)),
-           chains = 3,
-           iter = 10000,
-           warmup = 500,
-           sample_prior = TRUE,
-           cores = getOption("mc.cores",1),
-           seed = 7777,
-           control = list(adapt_delta = 0.99, max_treedepth = 15))
-         
-fitP1 = add_criterion(fitP1,c("loo","waic"),model_name = "fitP1",
-                     overwrite = T, file = "fitP1")
-summary(fitP1)
-plot(fitP1)
+#ARDITI-GINZBURG TYPE I (linear function, ratio algae:fish dependent)
+fit_R1 <- brm(formula = bf(Cons_rate ~ ((Algae_prev_d/Fish_density)*a+b)*fish_eating_minute, 
+                           a ~ 1, b ~ 1|Sequence, nl = TRUE),
+              data = data, family = gaussian(link = 'identity'),
+              prior = c(set_prior("normal(0, 0.5)", nlpar = "a", lb = 0),
+                        set_prior("normal(0, 0.5)", nlpar = "b", lb = 0),
+                        set_prior("cauchy(0, 0.1)", class  = "sigma")),
+              chains = 3, iter = 1500, warmup = 500, sample_prior = TRUE,
+              save_pars = save_pars(all = T),
+              seed = 777,
+              control = list(adapt_delta = 0.99, max_treedepth = 15),
+              file = "outputs_results/models/fit_R1")
 
-#  plot the difference between the prior and the posterior distribution of different parameters
-parnames(fitP1)
-plot(hypothesis(fitP1, " a_Intercept > 0"))
-plot(hypothesis(fitP1, " m_Intercept > 0"))
-#Marginal posterior predictive checks
-pp_check(fitP1, nsamples = 500)
+#ARDITI-GINZBURG TYPE II (hyperbolic function, ratio algae:fish dependent)
+fit_R2 <- brm(formula = bf(Cons_rate ~ ((Algae_prev_d/Fish_density)*a/(1+a*h*(Algae_prev_d/Fish_density))+b)*fish_eating_minute, 
+                           a ~ 1, b ~ 1|Sequence, h ~ 1, nl = TRUE),
+              data = data, family = gaussian(link = 'identity'),
+              prior = c(set_prior("normal(0, 0.5)", nlpar = "a", lb = 0),
+                        set_prior("normal(0, 2)", nlpar = "h", lb = 0),
+                        set_prior("normal(0, 0.5)", nlpar = "b"),
+                        set_prior("cauchy(0, 0.1)", class  = "sigma")),
+              chains = 3, iter = 1500, warmup = 500, sample_prior = TRUE,
+              save_pars = save_pars(all = T),
+              seed = 777,
+              control = list(adapt_delta = 0.99, max_treedepth = 15),
+              file = "outputs_results/models/fit_R2")
 
-#FitP2_theta = 1 / hyperbolic######
-#The fit will take 234 seconds 
-fitP2 <- brm(formula = bf(consumption_rate ~ a*(Algae_density*Fish_density^m)/(1+a*h*(Algae_density*Fish_density^m)), 
-                        a ~ 1, h ~ 1, m ~ 1, nl = TRUE),
-           data = data, family = gaussian(),
-           prior = c(set_prior("normal(0, 1)", nlpar = "a", lb = 0),
-                     set_prior("uniform(-3, 3)", nlpar = "m", lb = -3, ub = 3),
-                     set_prior("normal(0, 1)", nlpar = "h", lb = 0)),
-           chains = 3,
-           iter = 10000,
-           warmup = 500,
-           sample_prior = TRUE,
-           cores = getOption("mc.cores",1),
-           seed = 7777,
-           control = list(adapt_delta = 0.99, max_treedepth = 15))
-          
-fitP2 = add_criterion(fitP2,c("loo","waic"), model_name = "fitP2",
-                      overwrite = T, file = "fitP2")
 
-summary(fitP2)
-print(fitP2, digits=4)
-plot(fitP2)
-#  plot the difference between the prior and the posterior distribution of different parameters
-plot(hypothesis(fitP2, " a_Intercept > 0"))
-plot(hypothesis(fitP2, " h_Intercept > 0"))
-plot(hypothesis(fitP2, " m_Intercept < 0"))
-#Marginal posterior predictive checks
-pp_check(fitP2,nsamples = 500)
-plot(conditional_effects(fitP2), points = TRUE)
-#FitP3_theta = 2 / Sigmoidal #####
-# Fit will take 122 seconds
-fitP3 <- brm(formula = bf(consumption_rate ~ a*(Algae_density^2)*Fish_density^m/(1+a*h*(Algae_density^2)*Fish_density^m), 
-                        a ~ 1, h ~ 1, m ~ 1, nl = TRUE),
-           data = data, family = gaussian(),
-           prior = c(set_prior("normal(0, 1)", nlpar = "a", lb = 0),
-                     set_prior("normal(-3, 3)", nlpar = "m", lb = -3, ub=3),
-                     set_prior("normal(0, 1)", nlpar = "h", lb = 0)),
-           chains = 3,
-           iter = 10000,
-           warmup = 500,
-           sample_prior = TRUE,
-           cores = getOption("mc.cores",1),
-           seed = 7777,
-           control = list(adapt_delta = 0.99, max_treedepth = 15))
+#ARDITI-AKCAKAYA TYPE I (linear function with exponential fish interference)
+fit_P1 <- brm(formula = bf(Cons_rate ~ ((Algae_prev_d/Fish_density^m)*a+b)*fish_eating_minute, 
+                           a ~ 1, b ~ 1|Sequence, m ~ 1, nl = TRUE),
+              data = data, family = gaussian(link = 'identity'),
+              prior = c(set_prior("normal(0, 0.5)", nlpar = "a", lb = 0),
+                        set_prior("normal(1, 0.5)", nlpar = "m"),
+                        set_prior("normal(0, 0.5)", nlpar = "b"),
+                        set_prior("cauchy(0, 0.1)", class  = "sigma")),
+              chains = 3, iter = 1500, warmup = 500, sample_prior = TRUE,
+              save_pars = save_pars(all = T),
+              seed = 777,
+              control = list(adapt_delta = 0.99, max_treedepth = 15),
+              file = "outputs_results/models/fit_P1")
 
-fitP3= add_criterion(fitP3,c("loo","waic"),model_name = "fitP3",
-                     overwrite = T, file = "fitP3")
+#ARDITI-AKCAKAYA TYPE II (hyperbolic function with exponential fish interference)
+fit_P2 <- brm(formula = bf(Cons_rate ~ ((Algae_prev_d/Fish_density^m)*a/(1+a*h*(Algae_prev_d/Fish_density^m))+b)*fish_eating_minute, 
+                           a ~ 1, b ~ 1|Sequence, h ~ 1, m ~ 1, nl = TRUE),
+              data = data, family = gaussian(link = 'identity'),
+              prior = c(set_prior("normal(0, 0.5)", nlpar = "a", lb = 0),
+                        set_prior("normal(0, 2)", nlpar = "h", lb = 0),
+                        set_prior("normal(1, 0.5)", nlpar = "m"),
+                        set_prior("normal(0, 0.5)", nlpar = "b"),
+                        set_prior("cauchy(0, 0.1)", class  = "sigma")),
+              chains = 3, iter = 1500, warmup = 500, sample_prior = TRUE,
+              save_pars = save_pars(all = T),
+              seed = 777,
+              control = list(adapt_delta = 0.99, max_treedepth = 15),
+              file = "outputs_results/models/fit_P2")
 
-summary(fitP3)
-plot(fitP3)
-#  plot the difference between the prior and the posterior distribution of different parameters
-plot(hypothesis(fitP3, " a_Intercept > 0"))
-plot(hypothesis(fitP3, " h_Intercept > 0"))
-plot(hypothesis(fitP3, " m_Intercept > 0"))
-#Marginal posterior predictive checks
-pp_check(fitP3,nsamples = 500)
-plot(conditional_effects(fitP3), points = TRUE)
+#IVLEV resource-dependent (only algae dependent)
+fit_IV <- brm(formula = bf(Cons_rate ~ (a*(1-exp(-d*Algae_prev_d))+b)*fish_eating_minute, 
+                           a ~ 1, b ~ 1|Sequence, d ~ 1, nl = TRUE),
+              data = data, family = gaussian(link = 'identity'),
+              prior = c(set_prior("normal(0, 0.5)", nlpar = "a", lb = 0),
+                        set_prior("normal(0, 2)", nlpar = "d", lb = 0),
+                        set_prior("normal(0, 0.5)", nlpar = "b"),
+                        set_prior("cauchy(0, 0.1)", class  = "sigma")),
+              chains = 3, iter = 1500, warmup = 500, 
+              sample_prior = TRUE,
+              save_pars = save_pars(all = T),
+              seed = 777,
+              control = list(adapt_delta = 0.99, max_treedepth = 15),
+              file = "outputs_results/models/fit_IV")
+
+# IVLEV (ratio dependent)
+fit_IVR <- brm(formula = bf(Cons_rate ~ (a*(1-exp(-d*Algae_prev_d/Fish_density))+b)*fish_eating_minute, 
+                           a ~ 1, b ~ 1|Sequence, d ~ 1, nl = TRUE),
+              data = data, family = gaussian(link = 'identity'),
+              prior = c(set_prior("normal(0, 0.5)", nlpar = "a", lb = 0),
+                        set_prior("normal(0, 2)", nlpar = "d", lb = 0),
+                        set_prior("normal(0, 0.5)", nlpar = "b"),
+                        set_prior("cauchy(0, 0.1)", class  = "sigma")),
+              chains = 3, iter = 1500, warmup = 500, sample_prior = TRUE,
+              save_pars = save_pars(all = T),
+              seed = 777,
+              control = list(adapt_delta = 0.99, max_treedepth = 15),
+              file = "outputs_results/models/fit_IVR")
 
