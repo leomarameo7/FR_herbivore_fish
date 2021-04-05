@@ -22,7 +22,7 @@ We provided comprehensive empirical comparisons of alternative functional respon
 3. Notes: how to use ? Retriewed from https://kdestasio.github.io/post/r_best_practices/
 
 Structure of the project as follow: 
-Atoll_Rocas_project/ (It is the top-level folder and contains all of the folders                         and files associated with that project.)
+FR_herbivore_fish/ (It is the top-level folder and contains all of the folders                         and files associated with that project.)
 |--- R (in this folder, you can find R scripts used to clean, manipulate, do and show along the entire research)
 
 |--- data (folder with data used in this project)
@@ -66,5 +66,5 @@ compare models fit with ELPD and LFOCV criteria
 Figure 3: plot observed and fitted predictions for the hyperbolic P2 model 
      
 
-The rest of the scripts just do Table S1 and plot some others figures for comparison purposes. You can find these scripts in the folder "supplementary_materials"
+The rest of the scripts just do Table S2 and plot some others figures for comparison purposes. You can find these scripts in the folder "supplementary_materials"
 
