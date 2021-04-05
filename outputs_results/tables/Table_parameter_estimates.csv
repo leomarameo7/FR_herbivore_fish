@@ -1,0 +1,35 @@
+"Model","Parameter","Estimate","Rhat","ESS"
+"Null","α: constant maximum intake rate","0.32 [0.01; 0.86]",1,1047
+"Null","Sequence","-0.11 [-0.65; 0.21]",1,935
+"Null","Res. Stand. Dev.","0.44 [0.41; 0.48]",1,1813
+"H1","a: attack rate","1.08 [0.7; 1.45]",1,1434
+"H1","Sequence","0.13 [0.07; 0.19]",1,922
+"H1","Res. Stand. Dev.","0.42 [0.39; 0.46]",1,2236
+"H2","a: attack rate","1.14 [0.69; 1.63]",1,1507
+"H2","Sequence","0.13 [0.07; 0.2]",1,859
+"H2","h: handling time","0.8 [0.02; 2.46]",1,1429
+"H2","Res. Stand. Dev.","0.42 [0.39; 0.46]",1,2129
+"R1","a: attack rate","0.16 [0.13; 0.2]",1,1323
+"R1","Sequence","0.09 [0.05; 0.13]",1,791
+"R1","Res. Stand. Dev.","0.39 [0.36; 0.43]",1,2498
+"R2","a: attack rate","0.22 [0.14; 0.4]",1.01,884
+"R2","Sequence","0.08 [0.02; 0.12]",1,754
+"R2","h: handling time","0.8 [0.03; 2.22]",1.01,1006
+"R2","Res. Stand. Dev.","0.4 [0.36; 0.43]",1,2034
+"P1","a: attack rate","0.05 [0.01; 0.14]",1,1193
+"P1","Sequence","0.1 [0.06; 0.14]",1,982
+"P1","m: mutual interference","1.6 [1.06; 2.16]",1,1207
+"P1","Res. Stand. Dev.","0.39 [0.36; 0.42]",1,2082
+"P2","a: attack rate","0.06 [0.01; 0.19]",1,1308
+"P2","Sequence","0.09 [0.04; 0.14]",1,1114
+"P2","h: handling time","0.83 [0.04; 2.26]",1,1360
+"P2","m: mutual interference","1.61 [1.09; 2.21]",1,1493
+"P2","Res. Stand. Dev.","0.39 [0.36; 0.42]",1,2656
+"IV","a: maximum feeding rate","0.66 [0.32; 1.23]",1,1588
+"IV","Sequence","0.11 [0.05; 0.18]",1,1022
+"IV","d: satiation coeff.","2.44 [0.99; 4.84]",1,1528
+"IV","Res. Stand. Dev.","0.42 [0.39; 0.46]",1,2401
+"IVR","a: maximum feeding rate","0.61 [0.31; 1.15]",1,1238
+"IVR","Sequence","0.08 [0.02; 0.12]",1,1540
+"IVR","d: satiation coeff.","0.44 [0.15; 1.04]",1,1258
+"IVR","Res. Stand. Dev.","0.4 [0.37; 0.43]",1,1810

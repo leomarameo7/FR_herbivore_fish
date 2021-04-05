@@ -26,7 +26,7 @@ personal_theme = theme_classic() +
     legend.position='none')
 
 #### Reload models with the readRDS() function####
-fit_R1 = readRDS("outputs_results/models/fit_R1.rds")
+fit_P2 = readRDS("outputs_results/models/fit_P2.rds")
 ### Load data_observed #####
 data <- readxl::read_excel('data/processed/data_cleaned.xlsx')
 data_observed <- data %>% 
@@ -37,7 +37,7 @@ data_predicted <- data_observed %>%
   group_by(Algae_density, Fish_density) %>%
   #' add_predicted_draws adds draws from posterior predictions to the data_observed. 
   #' .prediction column containing draws from the posterior predictive distribution.
-  add_predicted_draws(fit_R1, n = 3000) %>% 
+  add_predicted_draws(fit_P2, n = 3000) %>% 
   mutate(.prediction_per_capita = ifelse(fish_eating_minute == 0, 0, .prediction/fish_eating_minute) ) %>% 
   mutate(ratio = Algae_density / Fish_density) %>% 
   ungroup()  
@@ -138,11 +138,6 @@ ggsave(filename = "Fig_3.pdf",
        path = "outputs_results/figures/",
        dpi = 600)
 
-library("cowplot")
-ggdraw() +
-  draw_plot(p, x = 0, y = .5, width = .5, height = .5) +
-  draw_plot(p2, x = .5, y = .5, width = .5, height = .5) +
-  draw_plot(p3, x = 0, y = 0, width = 2, height = 0.5) 
 
 ####  facet wrap #####
 data_predicted<- data_predicted%>% 

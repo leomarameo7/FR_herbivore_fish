@@ -3,7 +3,7 @@ library(brms) #bayesian modelling with STAN code
 library(readxl) #read excel data
 library(tidyverse)
 ##### READ DATA AND SET CATEGORICAL VARIABLES #####
-data <- read_excel('data/processed/data_cleaned.xlsx')
+data <- read_excel('data/processed/data_cleaned_new.xlsx')
 data$Sequence <- as.factor(data$Sequence) #order of the experiments during a day
 
 #####NULL MODEL (non dependent of algae and fish densities)####

@@ -38,14 +38,11 @@ colors = color_scheme_set("mix-blue-red")
 
 
 #### Reload models with the readRDS() function####
-fitR1 = readRDS("outputs_results/models/fit_R1.rds")
-fitR2 = readRDS("outputs_results/models/fit_R2.rds")
 fitP1 = readRDS("outputs_results/models/fit_P1.rds")
 fitP2 = readRDS("outputs_results/models/fit_P2.rds")
 
 
 p2 = stanplot(fitP2, type = "trace")
-r1 = stanplot(fitR1, type = "trace")
 P1 =  stanplot(fitP1, type = "trace") 
 
 ggsave(filename = "FigureS3.pdf",
@@ -81,18 +78,18 @@ p1 = ggplot(filter(fitP1tranformed, Parameter %in%
  #scale_colour_wsj("colors6")+
   #scale_color_grey() +
  # scale_colour_viridis_d()+
-  labs(title = "Trace plots P1: linear", 
+  labs(title = "Trace plots P1 functional response model", 
        col   = "Chains")
 p1
 ### Before run this part of code, load R script "F_modify_facet_scales"
 p1_modify <- p1 +
   facet_wrap_custom(Parameter ~ . , scales = "free_y", scale_overrides = list (
     
-    scale_override(1, scale_y_continuous(limits  = c(0, 0.8), breaks = seq(0, 0.8, 0.1))),
+    scale_override(1, scale_y_continuous(limits  = c(0, 0.3), breaks = seq(0, 0.3, 0.05))),
     
-    scale_override(2, scale_y_continuous(limits  = c(-0.2, 0.6), breaks = seq(-0.2, 0.6, 0.1))),
+    scale_override(2, scale_y_continuous(limits  = c(0, 0.2), breaks = seq(0, 0.2, 0.05))),
     
-    scale_override(3, scale_y_continuous(limits  = c(-0.5,2), breaks = seq(-0.50, 2, 0.5))),
+    scale_override(3, scale_y_continuous(limits  = c(0.5,2.5), breaks = seq(0.5, 2.5, 0.25))),
     
     scale_override(4, scale_y_continuous(limits  = c(0.3, 0.5), breaks = seq(0.3, 0.5, 0.035)))
   ))
@@ -100,11 +97,11 @@ p1_modify
 
 
 ##### Saving P1 trace plot #####
-ggsave(filename = "P1_trace_plots",
+ggsave(filename = "P1_trace_plots.pdf",
        plot = p1_modify, 
        device="pdf",
        path ="outputs_results/supplementary_materials/",
-       dpi = 400)
+       dpi = 600)
 
 ##### Trace plots P2######
 fitP2tranformed <- ggs(fitP2)  
@@ -134,10 +131,12 @@ p2
 
 p2_modify <- p2 +
   facet_wrap_custom(Parameter ~ . , scales = "free_y", scale_overrides = list (
-    scale_override(1, scale_y_continuous(limits  = c(-0.15, 0.75), breaks = seq(-0.15, 0.75, 0.15))),
-    scale_override(3, scale_y_continuous(limits  = c(0.25, 3.5), breaks = seq(0.25, 3.5, 0.5))),
+    scale_override(1, scale_y_continuous(limits  = c(0, 0.5), breaks = seq(0, 0.5, 0.1))),
+    scale_override(2, scale_y_continuous(limits  = c(0, 0.3), breaks = seq(0, 0.3, 0.05))),
+    scale_override(3, scale_y_continuous(limits  = c(0, 4), breaks = seq(0, 4., 0.5))),
+    scale_override(4, scale_y_continuous(limits  = c(0, 3), breaks = seq(0, 3, 0.5))),
     
-    scale_override(5, scale_y_continuous(limits  = c(0.3, 0.45), breaks = seq(0.3, 0.45, 0.05)))
+    scale_override(5, scale_y_continuous(limits  = c(0.3, 0.45), breaks = seq(0.3, 0.45, 0.025)))
   ))
 p2_modify
 ##### Saving P2 trace plot #####
@@ -145,49 +144,4 @@ ggsave(filename = "P2_trace_plots.pdf",
        plot=p2_modify, 
        device="pdf",
        path ="outputs_results/supplementary_materials/",
-       dpi = 400)
-
-##### R1 trace plots  ######
-fitR1tranformed <- ggs(fitR1)  
-parnames(fitR1)
-fitR1tranformed$Parameter <- factor(fitR1tranformed$Parameter,
-                                    levels = c("b_a_Intercept","b_b_Intercept","sigma"),
-                                    labels = c("a: attack rate","Sequence", "Residual standard deviation"))
-fitR1tranformed= fitR1tranformed %>% drop_na()
-#  Trace Plot P3 ##
-r1 = ggplot(filter(fitR1tranformed, Parameter %in% 
-                    c("a: attack rate","Sequence","Residual standard deviation")),
-           aes(x   = Iteration,
-               y   = value, 
-               col = as.factor(Chain)))+
-  geom_line() +
-  geom_vline(xintercept = 500, linetype="longdash")+
-  facet_wrap(Parameter ~ . ,
-             scale  = 'free_y',
-             strip.position="top") +
-  th +
-  scale_color_manual(values =c( "#B97C7C", "#03396c", "#d1e1ec" )) +
-  labs(title = "Trace plots R1: linear", 
-       col   = "Chains")
-r1
-
-
-r1_modify <- r1 +
-  facet_wrap_custom(Parameter ~ . , scales = "free_y", scale_overrides = list (
-    scale_override(1, scale_y_continuous(limits  = c(0.15, 0.45), breaks = seq(0.15, 0.45, 0.1))),
-    
-    scale_override(2, scale_y_continuous(limits  = c(0, 1), breaks = seq(0, 1, 0.25))),
-    
-    scale_override(3, scale_y_continuous(limits  = c(0.25, 0.75), breaks = seq(0.25, 0.75, 0.15)))
-  ))
-r1_modify
-##### Saving P3 trace plot #####
-ggsave(filename = "R1_trace_plots.pdf",
-       plot=r1_modify, 
-       device="pdf",
-       path ="outputs_results/supplementary_materials/",
-       dpi = 400)
-
-
-
-
+       dpi = 600)
