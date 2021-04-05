@@ -1,10 +1,7 @@
-**** Title: Mutual interference reduces herbivore fish’ intake rate ****
+**** Title: Consumer-dependent functional response of a herbivorous reef fish in a field experiment ****
  1. Authors: 
  - Leonardo Capitani [Corresponding author: leonardocapitani@icloud.com],
        Affiliation: Post Graduate Program in Ecology, Bioscience Institute, Universidade Federal do Rio Grande do Norte, Natal, 59072-970, Brazil
-       
-  - Luca Schenone
-       Affiliation: Limnology laboratory, INIBIOMA, UNComahue-CONICET, Quintral 1250, 8400, Bariloche, Argentina
        
  - Natalia Roos
        Affiliation: Department of Oceanography and Limnology, Universidade Federal do Rio Grande do Norte, Natal, RN, 59014-002, Brazil
@@ -14,10 +11,13 @@
     
  - Guilherme Ortigara Longo 
       Affiliation: Department of Oceanography and Limnology, Universidade Federal do Rio Grande do Norte, Natal, 59014-002, Brazil
+      
+  - Luca Schenone
+       Affiliation: Limnology laboratory, INIBIOMA, UNComahue-CONICET, Quintral 1250, 8400, Bariloche, Argentina
 
 2. Brief description of the project: 
 
-We provided comprehensive empirical comparisons of alternative functional response models for the herbivore fish *Acanthurus chirurgus* (Bloch, 1787) and the red macroalgae Digenea simplex ((Wulfen & Agardh, 1822) as its prey in the Rocas Atoll, a pristine South atlntic Atoll reef ecosystem. 
+We provided comprehensive empirical comparisons of alternative functional response models for the herbivorous fish *Acanthurus chirurgus* (Bloch, 1787) and the red seaweed Digenea simplex ((Wulfen & Agardh, 1822) as its resource in the Rocas Atoll, a pristine South Atlantic reef ecosystem. 
 
 3. Notes: how to use ? Retriewed from https://kdestasio.github.io/post/r_best_practices/
 
@@ -40,12 +40,13 @@ README.md
 Each file has a short, descriptive name that indicates its purpose. Names  include only letters and numbers with underscores _ to separate words. Files that are part of the same work flow are numbered to indicate the order in which they are to be run. We use letters as as follow: 
 C = stats for CLEAN DATA 
 D = do the statistical analysis 
-S= show analysis results 
-F= function 
+S = show analysis results 
+F = function 
 raw = states for files that contains raw data
 processed = states for files contains data that were cleaned or manipulated 
 
-Exemple
+Exemple:
+
 01_C_load_biomass_traits.R
 
 02_C_merge_biomass_traits_data.R
@@ -53,20 +54,16 @@ Exemple
 5. How to run the analysis with R  
 
 Start with the 
-1) "01_load_and_clean_raw_data.R" script.  This file clean raw data data.
+1) "01_clean_raw_data.R" script.  This file clean raw data data.
 
 2) "02_D_fitting_functional_response_models.R"
 Fit the observed data to FUNCTIONAL RESPONSE MODELS with package brms    
 
-3)"03_D_Table_1_LOOIC_WAIC_compare_models.R"
-compare models fit with WAIC and LOOIC criteria    
+3)"03_D_Table_2_ELPD_LFOCV_compare_models.R"
+compare models fit with ELPD and LFOCV criteria    
 
-4) "04_S_Fig_2.R" 
-Figure 2: plot observed and fitted predictions for the hyperbolic P2 model 
-     
-     
-5) "05_S_Fig_3_parameters_posterior_uncertainty_estimates.R"
-Figure 3: plot parameters bayesina posterior distributions for all the models fitted 
+4) "04_S_Fig_3.R" 
+Figure 3: plot observed and fitted predictions for the hyperbolic P2 model 
      
 
 The rest of the scripts just do Table S1 and plot some others figures for comparison purposes. You can find these scripts in the folder "supplementary_materials"
