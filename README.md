@@ -1,19 +1,19 @@
 **** Title: Consumer-dependent functional response of a herbivorous reef fish in a field experiment ****
  1. Authors: 
  - Leonardo Capitani [Corresponding author: leonardocapitani@icloud.com],
-       Affiliation: Post Graduate Program in Ecology, Bioscience Institute, Universidade Federal do Rio Grande do Norte, Natal, 59072-970, Brazil
+       --Affiliation: Post Graduate Program in Ecology, Bioscience Institute, Universidade Federal do Rio Grande do Norte, Natal, 59072-970, Brazil
        
  - Natalia Roos
-       Affiliation: Department of Oceanography and Limnology, Universidade Federal do Rio Grande do Norte, Natal, RN, 59014-002, Brazil
+       --Affiliation: Department of Oceanography and Limnology, Universidade Federal do Rio Grande do Norte, Natal, RN, 59014-002, Brazil
        
  - Ronaldo Angelini
-       Affiliation: Department of Civil Engineering, Universidade Federal do Rio Grande do Norte, Natal, 59078-970, Brazil
+      -- Affiliation: Department of Civil Engineering, Universidade Federal do Rio Grande do Norte, Natal, 59078-970, Brazil
     
  - Guilherme Ortigara Longo 
-      Affiliation: Department of Oceanography and Limnology, Universidade Federal do Rio Grande do Norte, Natal, 59014-002, Brazil
+     -- Affiliation: Department of Oceanography and Limnology, Universidade Federal do Rio Grande do Norte, Natal, 59014-002, Brazil
       
   - Luca Schenone
-       Affiliation: Limnology laboratory, INIBIOMA, UNComahue-CONICET, Quintral 1250, 8400, Bariloche, Argentina
+       ´--Affiliation: Limnology laboratory, INIBIOMA, UNComahue-CONICET, Quintral 1250, 8400, Bariloche, Argentina
 
 2. Brief description of the project: 
 
