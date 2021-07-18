@@ -1,15 +1,13 @@
 ### Load packages####
 library(tidyverse)
-library(ggplot2)
-library(brms)
-library(ggpubr)
-library(readxl)
 library(tidybayes)
+library(RColorBrewer)
+library("gridExtra")
 ### define theme ggplot
 personal_theme = theme_classic() +
   theme(
     panel.grid.major = element_blank(),
-   # aspect.ratio = 0.5,
+    aspect.ratio = 0.75,
     panel.grid.minor = element_blank(),
     panel.background = element_blank(),
     axis.line = element_line(size = 0.75),
@@ -20,124 +18,99 @@ personal_theme = theme_classic() +
     axis.text.y  = element_text(colour = "black", size = 14),
     strip.text = element_text(size = 16),
     strip.background = element_blank(),
-    legend.key.size = unit(0.75,'lines'),
+    legend.key.size = unit(1,'lines'),
     legend.key.height = unit(1,"lines"),
-    legend.text = element_text(size = 11),
-    legend.position='none')
+    legend.text = element_text(size = 16),
+    legend.title = element_text(size=16))
 
-#### Reload models with the readRDS() function####
-fit_P2 = readRDS("outputs_results/models/fit_P2.rds")
 ### Load data_observed #####
-data <- readxl::read_excel('data/processed/data_cleaned.xlsx')
-data_observed <- data %>% 
-  mutate(ratio = round(data$Algae_density/data$Fish_density, digits = 3))
-unique(data_observed$ratio) # 20 combinations of the ratio algae/fish density
+data_observed <- read_csv('data/raw/data_raw.csv')
+unique(data_observed$P)
+unique(data_observed$P_biomass_kg_m2)
 
-data_predicted <- data_observed %>%
-  group_by(Algae_density, Fish_density) %>%
-  #' add_predicted_draws adds draws from posterior predictions to the data_observed. 
-  #' .prediction column containing draws from the posterior predictive distribution.
-  add_predicted_draws(fit_P2, n = 3000) %>% 
-  mutate(.prediction_per_capita = ifelse(fish_eating_minute == 0, 0, .prediction/fish_eating_minute) ) %>% 
-  mutate(ratio = Algae_density / Fish_density) %>% 
-  ungroup()  
-  
+#### Fig.3_a Resource density vs consumption rate  ####
+data_observed$N <- round(data_observed$N, digits = 2)
+unique(data_observed$N)
+summary(data_observed$C)
+# predictors as factors 
+data_observed$P_factor <- as.factor(round(data_observed$P, digits = 2))
+data_observed$N_factor <- as.factor(round(data_observed$N, digits = 2))
+# define colors #
+nb.cols <- 4
+mycolors <- colorRampPalette(brewer.pal(4, "Set1"))(nb.cols)
 
-#data_predicted <- data_predicted %>%  filter(.prediction_per_capita >0 & .prediction_per_capita < 1)
 
-####  Resource density vs consumption rate  ####
-data_observed$Algae_density <- round(data_observed$Algae_density, digits = 2)
-data_predicted$Algae_density <- round(data_predicted$Algae_density, digits = 2)
-
-p =  ggplot() +
-  stat_lineribbon(data = data_predicted, aes(y = .prediction_per_capita, x = Algae_density), 
-                  alpha = 0.5,
-                  .width = c(.5, .95)) +
-  
-  geom_boxplot( aes(x = data_observed$Algae_density, y = data_observed$Cons_rate_pc, group = data_observed$Algae_density, alpha = 0.2), 
-                outlier.colour = NA,
-                width = 0.01,
-                notch = F) +
-  
-  scale_fill_grey(start = 0.8, end = 0.5, guide = 'none') +
+p <-  ggplot(data = data_observed, aes(y = C, x = N, color = P_factor)) +
+  geom_point(aes(y = C, x = N), inherit.aes = FALSE, position = position_jitter(w = 0.001, h = 0),
+             alpha = 0.45)+
+  stat_pointinterval(.width = c(.50, .95), position = position_dodge(width = .0075))+
   personal_theme + 
-  labs(x = expression(Algae~density~" "~g~m^{-2}),
-       y = expression(Per~capita~consumption~rate~""~(g~min^{-1}~ind^{-1}))) +
+  labs(color = expression(Fish~density~" "~ind.~m^{-2}),
+       x = expression(Seaweed~density~" "~g~m^{-2}),
+       y = expression(Per~~capita~~consumption~~rate~""~(g~min^{-1}~ind^{-1}))) +
   scale_x_continuous(breaks = c(0.03,0.05,0.08,0.10,0.13)) +
-  scale_y_continuous(limits = c(0, 1.0), breaks = seq(0, 1.0, 0.2))
+  scale_y_continuous(limits = c(0, 1.5), breaks = seq(0, 1.5, 0.15))+
+  theme(legend.position="top")+
+  scale_color_manual(values = mycolors)
 p
 
-ggsave(filename = "Fig_3a.pdf",
+
+ggsave(filename = "Fig_3_a.pdf",
        plot = p, 
-       device = "pdf",
+       width = 10,
+       height = 10,
        path = "outputs_results/figures/",
        dpi = 600)
 
-#### Alternative Plot: consumption rate vs fish density ####
-data_observed$Fish_density <- round(data_observed$Fish_density, digits = 2)
-data_predicted$Fish_density <- round(data_predicted$Fish_density, digits = 2)
+#### Fig.3_b Plot: consumption rate vs fish density ####
+data_observed$P <- round(data_observed$P, digits = 2)
+unique(data_observed$P)
+summary(data_observed$C)
+nb.cols <- 5
+mycolors <- colorRampPalette(brewer.pal(5, "Set2"))(nb.cols)
+data_observed$N_factor <- as.factor(round(data_observed$N, digits = 2))
 
-p2 <-  ggplot() +
-  
-  stat_lineribbon(data = data_predicted, aes(y = .prediction_per_capita, x = Fish_density), 
-                  alpha = 0.5,
-                  .width = c(.5, .95)) +
-  
-  geom_boxplot( aes(x = data_observed$Fish_density, y = data_observed$Cons_rate_pc, group = data_observed$Fish_density, alpha = 0.2), 
-                outlier.colour = NA,
-                width = 0.01,
-                notch = F) +
-  scale_fill_grey(start = 0.8, end = 0.5, guide = 'none') +
+
+p2 <-  ggplot(data = data_observed, aes(y = C, x = P, color = N_factor)) +
+  geom_point(aes(y = C, x = P), inherit.aes = FALSE, position = position_jitter(w = 0.001, h = 0),
+                alpha = 0.45)+
+  stat_pointinterval(.width = c(.50, .95), position = position_dodge(width = .0075))+
   personal_theme + 
-  labs(x = expression(Fish~density~" "~ind.~m^{-2}),
+  labs(color = expression(Seaweed~density~" "~g~m^{-2}),
+       x = expression(Fish~density~" "~ind.~m^{-2}),
        y = expression(Per~capita~consumption~rate~""~(g~min^{-1}~ind^{-1}))) +
   scale_x_continuous(breaks=c(0.08,0.11,0.13,0.15))+
-  scale_y_continuous(limits = c(0, 1.0), breaks = seq(0, 1.0, 0.2))
+  scale_y_continuous(limits = c(0, 1.5), breaks = seq(0, 1.5, 0.15))+
+  theme(legend.position="top")+
+  scale_color_manual(values = mycolors)
 
 p2
 
 ggsave(filename = "Fig_3b.pdf",
        plot = p2, 
-       device = "pdf",
+       width = 10,
+       height = 10,
        path = "outputs_results/figures/",
        dpi = 600)
-
-#### Figure 3c #####
-
-p3 <-  ggplot() +
-  stat_lineribbon(data = data_predicted, aes(y = .prediction_per_capita, x = ratio), 
-                  alpha = 0.5,
-                  .width = c(.5, .95)) +
-  
-  geom_boxplot(aes(x = data_observed$ratio, y = data_observed$Cons_rate_pc, group = data_observed$ratio, alpha = 0.2), 
-                outlier.colour = NA,
-                width = 1,
-                notch = F) +
-  
-  scale_fill_grey(start = 0.8, end = 0.5, guide = 'none') +
-  personal_theme + 
-  labs(x = expression(Ratio~Algae~"/"~Fish),
-       y = expression(Per~capita~consumption~rate~""~(g~min^{-1}~ind^{-1}))) +
- scale_x_continuous(limits = c(0.15, 1.5), breaks = seq(0.15, 1.5, 0.15))+
- scale_y_continuous(limits = c(0, 1), breaks = seq(0, 1, 0.1))
-
-p3
-
 
 #### Multi plot ####
-
-library("gridExtra")
 ciccio <- grid.arrange(                             
-             arrangeGrob(p, p2, ncol = 2), # First row with 2 plots in 2 different columns
-             p3, # Second row with one plot spaning over 2 columns
-             nrow = 2) 
-
+             arrangeGrob(p, p2, ncol = 2)) 
+ciccio
 ggsave(filename = "Fig_3.pdf",
        plot = ciccio, 
-       device = "pdf",
+       width = 15,
+       height = 14,
        path = "outputs_results/figures/",
        dpi = 600)
 
+
+
+
+
+
+
+#### Do not run the code below #####
 
 ####  facet wrap #####
 data_predicted<- data_predicted%>% 
